@@ -1,0 +1,86 @@
+import java.util.*;
+
+public class SmartLibrarySearchSystem {
+
+    static int[] tree;
+
+    static void build(int[] arr, int node, int start, int end) {
+        if (start == end) {
+            tree[node] = arr[start];
+        } else {
+            int mid = (start + end) / 2;
+            build(arr, 2 * node, start, mid);
+            build(arr, 2 * node + 1, mid + 1, end);
+            tree[node] = tree[2 * node] + tree[2 * node + 1];
+        }
+    }
+
+    static int query(int node, int start, int end, int l, int r) {
+
+        if (r < start || l > end)
+            return 0;
+
+        if (l <= start && end <= r)
+            return tree[node];
+
+        int mid = (start + end) / 2;
+
+        return query(2 * node, start, mid, l, r)
+                + query(2 * node + 1, mid + 1, end, l, r);
+    }
+
+    public static void main(String[] args) {
+
+        Scanner sc = new Scanner(System.in);
+
+        TreeMap<Integer, String> bookIndex = new TreeMap<>();
+
+        bookIndex.put(101, "Data Structures");
+        bookIndex.put(102, "Java Programming");
+        bookIndex.put(103, "Database Systems");
+        bookIndex.put(104, "Operating Systems");
+        bookIndex.put(105, "Computer Networks");
+
+        System.out.println("SMART LIBRARY SEARCH SYSTEM");
+
+        System.out.println("\nBook Records:");
+        for (Map.Entry<Integer, String> entry : bookIndex.entrySet()) {
+            System.out.println(entry.getKey() + " - " + entry.getValue());
+        }
+
+        // Search Input
+        System.out.print("\nEnter Book ID to Search: ");
+        int searchId = sc.nextInt();
+
+        if (bookIndex.containsKey(searchId)) {
+            System.out.println("Book Found");
+            System.out.println("Title: " + bookIndex.get(searchId));
+        } else {
+            System.out.println("Book Not Found");
+        }
+
+        int[] issuedBooks = {120, 150, 100, 180, 140};
+
+        tree = new int[4 * issuedBooks.length];
+        build(issuedBooks, 1, 0, issuedBooks.length - 1);
+
+        System.out.println("\nMonth Index:");
+        System.out.println("Jan = 0");
+        System.out.println("Feb = 1");
+        System.out.println("Mar = 2");
+        System.out.println("Apr = 3");
+        System.out.println("May = 4");
+
+        System.out.print("\nEnter Start Month Index: ");
+        int start = sc.nextInt();
+
+        System.out.print("Enter End Month Index: ");
+        int end = sc.nextInt();
+
+        int totalIssued = query(1, 0, issuedBooks.length - 1, start, end);
+
+        System.out.println("\nTotal Books Issued = " + totalIssued);
+
+        sc.close();
+    }
+}
