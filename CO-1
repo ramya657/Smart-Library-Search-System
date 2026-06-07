@@ -1,0 +1,231 @@
+import java.util.Scanner;
+
+class Book {
+    int bookId;
+    String title;
+
+    Book(int bookId, String title) {
+        this.bookId = bookId;
+        this.title = title;
+    }
+}
+
+class AVLNode {
+    Book book;
+    AVLNode left, right;
+    int height;
+
+    AVLNode(Book book) {
+        this.book = book;
+        height = 1;
+    }
+}
+
+class AVLTree {
+
+    int height(AVLNode node) {
+        if (node == null)
+            return 0;
+        return node.height;
+    }
+
+    int getBalance(AVLNode node) {
+        if (node == null)
+            return 0;
+        return height(node.left) - height(node.right);
+    }
+
+    AVLNode rightRotate(AVLNode y) {
+        AVLNode x = y.left;
+        AVLNode T2 = x.right;
+
+        x.right = y;
+        y.left = T2;
+
+        y.height = Math.max(height(y.left), height(y.right)) + 1;
+        x.height = Math.max(height(x.left), height(x.right)) + 1;
+
+        return x;
+    }
+
+    AVLNode leftRotate(AVLNode x) {
+        AVLNode y = x.right;
+        AVLNode T2 = y.left;
+
+        y.left = x;
+        x.right = T2;
+
+        x.height = Math.max(height(x.left), height(x.right)) + 1;
+        y.height = Math.max(height(y.left), height(y.right)) + 1;
+
+        return y;
+    }
+
+    AVLNode insert(AVLNode node, Book book) {
+
+        if (node == null)
+            return new AVLNode(book);
+
+        if (book.bookId < node.book.bookId)
+            node.left = insert(node.left, book);
+        else if (book.bookId > node.book.bookId)
+            node.right = insert(node.right, book);
+        else
+            return node;
+
+        node.height = 1 + Math.max(height(node.left), height(node.right));
+
+        int balance = getBalance(node);
+
+        // LL Rotation
+        if (balance > 1 && book.bookId < node.left.book.bookId)
+            return rightRotate(node);
+
+        // RR Rotation
+        if (balance < -1 && book.bookId > node.right.book.bookId)
+            return leftRotate(node);
+
+        // LR Rotation
+        if (balance > 1 && book.bookId > node.left.book.bookId) {
+            node.left = leftRotate(node.left);
+            return rightRotate(node);
+        }
+
+        // RL Rotation
+        if (balance < -1 && book.bookId < node.right.book.bookId) {
+            node.right = rightRotate(node.right);
+            return leftRotate(node);
+        }
+
+        return node;
+    }
+
+    AVLNode minValueNode(AVLNode node) {
+        AVLNode current = node;
+
+        while (current.left != null)
+            current = current.left;
+
+        return current;
+    }
+
+    AVLNode delete(AVLNode root, int bookId) {
+
+        if (root == null)
+            return root;
+
+        if (bookId < root.book.bookId)
+            root.left = delete(root.left, bookId);
+
+        else if (bookId > root.book.bookId)
+            root.right = delete(root.right, bookId);
+
+        else {
+
+            if ((root.left == null) || (root.right == null)) {
+                AVLNode temp = null;
+
+                if (temp == root.left)
+                    temp = root.right;
+                else
+                    temp = root.left;
+
+                if (temp == null) {
+                    root = null;
+                } else {
+                    root = temp;
+                }
+            } else {
+                AVLNode temp = minValueNode(root.right);
+
+                root.book = temp.book;
+
+                root.right = delete(root.right, temp.book.bookId);
+            }
+        }
+
+        if (root == null)
+            return root;
+
+        root.height = Math.max(height(root.left), height(root.right)) + 1;
+
+        int balance = getBalance(root);
+
+        if (balance > 1 && getBalance(root.left) >= 0)
+            return rightRotate(root);
+
+        if (balance > 1 && getBalance(root.left) < 0) {
+            root.left = leftRotate(root.left);
+            return rightRotate(root);
+        }
+
+        if (balance < -1 && getBalance(root.right) <= 0)
+            return leftRotate(root);
+
+        if (balance < -1 && getBalance(root.right) > 0) {
+            root.right = rightRotate(root.right);
+            return leftRotate(root);
+        }
+
+        return root;
+    }
+
+    AVLNode search(AVLNode root, int bookId) {
+
+        if (root == null || root.book.bookId == bookId)
+            return root;
+
+        if (bookId < root.book.bookId)
+            return search(root.left, bookId);
+
+        return search(root.right, bookId);
+    }
+
+    void inorder(AVLNode root) {
+        if (root != null) {
+            inorder(root.left);
+            System.out.println("Book ID: " + root.book.bookId +
+                    " | Title: " + root.book.title);
+            inorder(root.right);
+        }
+    }
+}
+
+public class SmartLibrarySearchSystem {
+
+    public static void main(String[] args) {
+
+        Scanner sc = new Scanner(System.in);
+        AVLTree tree = new AVLTree();
+        AVLNode root = null;
+
+        root = tree.insert(root, new Book(105, "Java Programming"));
+        root = tree.insert(root, new Book(120, "Data Structures"));
+        root = tree.insert(root, new Book(110, "Algorithms"));
+        root = tree.insert(root, new Book(130, "Database Systems"));
+        root = tree.insert(root, new Book(95, "Operating Systems"));
+
+        System.out.println("Library Books:");
+        tree.inorder(root);
+
+        System.out.print("\nEnter Book ID to Search: ");
+        int searchId = sc.nextInt();
+
+        AVLNode result = tree.search(root, searchId);
+
+        if (result != null)
+            System.out.println("Book Found: " + result.book.title);
+        else
+            System.out.println("Book Not Found");
+
+        System.out.print("\nEnter Book ID to Delete: ");
+        int deleteId = sc.nextInt();
+
+        root = tree.delete(root, deleteId);
+
+        System.out.println("\nBooks After Deletion:");
+        tree.inorder(root);
+
+        sc.close();
+    }
+}
