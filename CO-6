@@ -1,0 +1,85 @@
+import java.util.Scanner;
+
+public class SmartLibraryKnapsack {
+
+    public static void main(String[] args) {
+
+        Scanner sc = new Scanner(System.in);
+
+        System.out.println("==========================================");
+        System.out.println(" SMART LIBRARY SEARCH SYSTEM");
+        System.out.println(" 0/1 Knapsack using Dynamic Programming");
+        System.out.println("==========================================");
+
+        System.out.print("Enter Number of Books: ");
+        int n = sc.nextInt();
+
+        int[] weight = new int[n];
+        int[] value = new int[n];
+        String[] title = new String[n];
+
+        for (int i = 0; i < n; i++) {
+
+            sc.nextLine();
+
+            System.out.println("\nEnter Details of Book " + (i + 1));
+
+            System.out.print("Book Title : ");
+            title[i] = sc.nextLine();
+
+            System.out.print("Weight : ");
+            weight[i] = sc.nextInt();
+
+            System.out.print("Value (Importance) : ");
+            value[i] = sc.nextInt();
+        }
+
+        System.out.print("\nEnter Maximum Bag Capacity : ");
+        int capacity = sc.nextInt();
+
+        int[][] dp = new int[n + 1][capacity + 1];
+
+        long start = System.nanoTime();
+
+        for (int i = 1; i <= n; i++) {
+
+            for (int w = 1; w <= capacity; w++) {
+
+                if (weight[i - 1] <= w) {
+
+                    dp[i][w] = Math.max(
+                            value[i - 1] + dp[i - 1][w - weight[i - 1]],
+                            dp[i - 1][w]);
+
+                } else {
+
+                    dp[i][w] = dp[i - 1][w];
+                }
+            }
+        }
+
+        long end = System.nanoTime();
+
+        System.out.println("\nMaximum Value = " + dp[n][capacity]);
+
+        System.out.println("\nSelected Books:");
+
+        int w = capacity;
+
+        for (int i = n; i > 0; i--) {
+
+            if (dp[i][w] != dp[i - 1][w]) {
+
+                System.out.println(title[i - 1] +
+                        " (Weight=" + weight[i - 1] +
+                        ", Value=" + value[i - 1] + ")");
+
+                w -= weight[i - 1];
+            }
+        }
+
+        System.out.println("\nExecution Time: " + (end - start) + " ns");
+
+        sc.close();
+    }
+}
